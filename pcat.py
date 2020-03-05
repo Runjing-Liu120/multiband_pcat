@@ -26,25 +26,25 @@ np.random.seed(20170501)
 
 # px and py are for astrometric color correction, don't worry about this
 
-#trueback_dict = dict({"r":179., "i":310., "g":95.}) # run 2583
+trueback_dict = dict({"r":179., "i":310., "g":95.}) # run 2583
 
 #swapped riuzg for run 2583
-#py = dict({"r":0.02782497, "i":0.10786159, "u":0.01680974, "z":0.0136938, "g":0.00488892})
-#px = dict({"r":0.0406713, "i":0.11861364, "u":0.02508619, "z":0.0202184, "g":0.00707397})
+py = dict({"r":0.02782497, "i":0.10786159, "u":0.01680974, "z":0.0136938, "g":0.00488892})
+px = dict({"r":0.0406713, "i":0.11861364, "u":0.02508619, "z":0.0202184, "g":0.00707397})
 
 #swapped ugriz for run 2583
 #py = dict({"r":0.0168097, "i":0.0136938, "g":0.107862})
 #px = dict({"r":0.0250862, "i":0.0202184, "g":0.118614})
 
 # swapped riuzg for sparse field, run 8151
-px = dict({"r":0.03026955, "i":0.11053126,"u":0.01785904, "z":0.01449279, "g":0.00513858})
-py = dict({"r":0.0073814, "i":-0.00581684, "u":0.00432934, "z":0.00352542, "g":0.00125652})
+# px = dict({"r":0.03026955, "i":0.11053126,"u":0.01785904, "z":0.01449279, "g":0.00513858})
+# py = dict({"r":0.0073814, "i":-0.00581684, "u":0.00432934, "z":0.00352542, "g":0.00125652})
 
 # swapped ugriz for sparse field, run 8151
 #px = dict({"g":0.11053126,"r":0.01785904, "i":0.01449279})
 #py = dict({"g":-0.00581684, "r":0.00432934, "i":0.00352542})
 # backgrounds for sparse field test
-trueback_dict = dict({"r":135., "i":215., "g":234., "z":140.})
+# trueback_dict = dict({"r":135., "i":215., "g":234., "z":140.})
 
 
 
@@ -77,24 +77,25 @@ bands, ncs, nbins, psfs, cfs, pixel_transfer_mats, biases, gains, \
 
 #-------------------------- this portion sets up base directories, probably will need to modify ---------------------
 
-if sys.platform=='darwin':
-    base_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master'
-elif sys.platform=='linux2':
-    base_path = '/n/fink1/rfeder/mpcat/multiband_pcat'
-else:
-    base_path = raw_input('Operating system not detected, please enter base_path directory (eg. /Users/.../pcat-lion-master):')
-    if not os.path.isdir(base_path):
-        raise OSError('Directory chosen does not exist. Please try again.')
-
-if datatype=='mock2':
-    result_path = base_path + '/Data'
-else:
-    if sys.platform=='linux2':
-        result_path = '/n/home07/rfederstaehle/pcat-lion-results'
-    else:
-        result_path = base_path + '/pcat-lion-results'
-print 'Results will go in', result_path
-
+# if sys.platform=='darwin':
+#     base_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master'
+# elif sys.platform=='linux2':
+#     base_path = '/n/fink1/rfeder/mpcat/multiband_pcat'
+# else:
+#     base_path = raw_input('Operating system not detected, please enter base_path directory (eg. /Users/.../pcat-lion-master):')
+#     if not os.path.isdir(base_path):
+#         raise OSError('Directory chosen does not exist. Please try again.')
+#
+# if datatype=='mock2':
+#     result_path = base_path + '/Data'
+# else:
+#     if sys.platform=='linux2':
+#         result_path = '/n/home07/rfederstaehle/pcat-lion-results'
+#     else:
+#         result_path = base_path + '/pcat-lion-results'
+# print 'Results will go in', result_path
+base_path = '/home/rliu/Documents/astronomy/multiband_pcat'
+result_path = base_path + 'pcat-lion-results'
 #-------------------------- portion below for manually entering in bands used in fit, one by one --------------------
 
 if multiband:
