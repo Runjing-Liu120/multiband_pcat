@@ -60,7 +60,7 @@ iteration_number = 1
 #search radius
 matching_dist = 0.75
 search_radius = 0.75
-cut = 0.1 
+cut = 0.1
 
 ########################## Setting up data paths #############################
 
@@ -219,7 +219,7 @@ def lion_cat_kd(path):
     lion_r = adutomag(lion_f)
     print 'lion_allf_shape', lion_allf.shape
     nbands = lion['f'].shape[0]
-    
+
     lion_fs = []
     lion_mask = (lion_f > 0) * (lion_x > 0+hwhm) * (lion_x < imdim-1-hwhm) * (lion_y > 0+hwhm) * (lion_y < imdim-1-hwhm)
 
@@ -382,7 +382,7 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
 
     #nbands = cat_fs.shape[0]
     print 'nbands=', nbands
-    print 
+    print
     for i in xrange(nsamp):
         #cat = np.zeros((max_num_sources, 3))
         cat = np.zeros((max_num_sources, 2+nbands))
@@ -428,11 +428,11 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
             #for specific catalog, find indices of start and end within large tree
             cat_lo_ndx = np.sum(cat_n[:i])
             cat_hi_ndx = np.sum(cat_n[:i+1])
-            #want in the form of a numpy array so we can use array slicing/masking  
+            #want in the form of a numpy array so we can use array slicing/masking
             matches = np.array(matches)
 
             #find the locations of matches to ct within specific catalog i
-            culled_matches =  matches[np.logical_and(matches >= cat_lo_ndx, matches < cat_hi_ndx)] 
+            culled_matches =  matches[np.logical_and(matches >= cat_lo_ndx, matches < cat_hi_ndx)]
 
             if culled_matches.size > 0:
                 #cut according to mask
@@ -481,11 +481,11 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
         x = clusters[:,i][np.nonzero(clusters[:,i])]
         y = clusters[:,i+cat_len][np.nonzero(clusters[:,i+cat_len])]
         #f = clusters[:,i+2*cat_len][np.nonzero(clusters[:,i+2*cat_len])]
-        
+
         fs=[]
         for b in xrange(nbands):
             fs.append(clusters[:,i+(2+b)*cat_len][np.nonzero(clusters[:,i+(2+b)*cat_len])])
-        
+
         assert x.size == y.size
         #assert x.size == f.size
         assert x.size == fs[0].size
@@ -509,7 +509,7 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
             for b in xrange(nbands):
                 err_mags[b,i] = np.absolute(adu_to_magnitude(np.percentile(fs[b], hi), nmgy[b])-adu_to_magnitude(np.percentile(fs[b], lo), nmgy[b]))
     #makes classical catalog
-#    classical_catalog = np.zeros( (cat_len, 9) ) 
+#    classical_catalog = np.zeros( (cat_len, 9) )
 
     classical_catalog = np.zeros((cat_len, 7+2*nbands))
     classical_catalog[:,0] = mean_x
@@ -582,7 +582,7 @@ if datatype != 'mock':
     if not make_seed_bool and os.path.isfile(base_path+'/pcat-lion-results/'+run_name+'/seeds.txt'):
         dat = np.loadtxt(base_path+'/pcat-lion-results/'+run_name+'/seeds.txt')
     else:
-        dat = generate_seed_catalog(lion_kd, lion_all, lion_r_all, PCi)    
+        dat = generate_seed_catalog(lion_kd, lion_all, lion_r_all, PCi)
     cut = 0.1
 
     # plots histogram of confidence
@@ -758,5 +758,3 @@ print 'lion comments:', lion_comments
 with open(result_path+'/'+run_name+'/comments.txt', 'w') as p:
     p.write(lion_comments)
     p.close()
-
-
