@@ -60,28 +60,30 @@ iteration_number = 1
 #search radius
 matching_dist = 0.75
 search_radius = 0.75
-cut = 0.1 
+cut = 0.1
 
 ########################## Setting up data paths #############################
 
-include_hubble = 1
+include_hubble = 0
 if datatype=='mock':
     include_hubble = 0
 daophot = 1
 
-if sys.platform=='darwin':
-    base_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master'
-    data_path = base_path
-    result_path = base_path+'/pcat-lion-results'
-elif sys.platform=='linux2':
-    #base_path = '/n/fink1/rfeder/mpcat/multiband_pcat'
-    base_path = '/n/home07/rfederstaehle'
-    result_path = '/n/home07/rfederstaehle/figures/'
-    data_path = '/n/fink1/rfeder/mpcat/multiband_pcat/'
-else:
-    base_path = raw_input('Operating system not detected, please enter base_path directory (eg. /Users/.../pcat-lion-master):')
-    if not os.path.isdir(base_path):
-        raise OSError('Directory chosen does not exist. Please try again.')
+# if sys.platform=='darwin':
+#     base_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master'
+#     data_path = base_path
+#     result_path = base_path+'/pcat-lion-results'
+# elif sys.platform=='linux2':
+#     #base_path = '/n/fink1/rfeder/mpcat/multiband_pcat'
+#     base_path = '/n/home07/rfederstaehle'
+#     result_path = '/n/home07/rfederstaehle/figures/'
+#     data_path = '/n/fink1/rfeder/mpcat/multiband_pcat/'
+# else:
+#     base_path = raw_input('Operating system not detected, please enter base_path directory (eg. /Users/.../pcat-lion-master):')
+#     if not os.path.isdir(base_path):
+#         raise OSError('Directory chosen does not exist. Please try again.')
+base_path = '/accounts/grad/runjing_liu/astronomy/pcat_experimentation/'
+result_path = '/accounts/grad/runjing_liu/astronomy/pcat_experimentation/pcat-lion-results/'
 
 ##############################################################################
 
@@ -219,7 +221,7 @@ def lion_cat_kd(path):
     lion_r = adutomag(lion_f)
     print 'lion_allf_shape', lion_allf.shape
     nbands = lion['f'].shape[0]
-    
+
     lion_fs = []
     lion_mask = (lion_f > 0) * (lion_x > 0+hwhm) * (lion_x < imdim-1-hwhm) * (lion_y > 0+hwhm) * (lion_y < imdim-1-hwhm)
 
@@ -358,7 +360,8 @@ def generate_seed_catalog(kd, cat_all, cat_r_all, PCi):
 
     while nx.number_of_nodes(G) > 0:
         deg = nx.degree(G)
-        i = max(deg, key=deg.get)
+        # i = max(deg, key=deg.get)
+        i = max(deg, key=lambda x: x[1])[0]
         neighbors = nx.all_neighbors(G, i)
         print 'found', i
         seeds.append([cat_all[i, 0], cat_all[i, 1], deg[i]])
@@ -382,7 +385,7 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
 
     #nbands = cat_fs.shape[0]
     print 'nbands=', nbands
-    print 
+    print
     for i in xrange(nsamp):
         #cat = np.zeros((max_num_sources, 3))
         cat = np.zeros((max_num_sources, 2+nbands))
@@ -428,11 +431,11 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
             #for specific catalog, find indices of start and end within large tree
             cat_lo_ndx = np.sum(cat_n[:i])
             cat_hi_ndx = np.sum(cat_n[:i+1])
-            #want in the form of a numpy array so we can use array slicing/masking  
+            #want in the form of a numpy array so we can use array slicing/masking
             matches = np.array(matches)
 
             #find the locations of matches to ct within specific catalog i
-            culled_matches =  matches[np.logical_and(matches >= cat_lo_ndx, matches < cat_hi_ndx)] 
+            culled_matches =  matches[np.logical_and(matches >= cat_lo_ndx, matches < cat_hi_ndx)]
 
             if culled_matches.size > 0:
                 #cut according to mask
@@ -481,11 +484,11 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
         x = clusters[:,i][np.nonzero(clusters[:,i])]
         y = clusters[:,i+cat_len][np.nonzero(clusters[:,i+cat_len])]
         #f = clusters[:,i+2*cat_len][np.nonzero(clusters[:,i+2*cat_len])]
-        
+
         fs=[]
         for b in xrange(nbands):
             fs.append(clusters[:,i+(2+b)*cat_len][np.nonzero(clusters[:,i+(2+b)*cat_len])])
-        
+
         assert x.size == y.size
         #assert x.size == f.size
         assert x.size == fs[0].size
@@ -509,7 +512,7 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
             for b in xrange(nbands):
                 err_mags[b,i] = np.absolute(adu_to_magnitude(np.percentile(fs[b], hi), nmgy[b])-adu_to_magnitude(np.percentile(fs[b], lo), nmgy[b]))
     #makes classical catalog
-#    classical_catalog = np.zeros( (cat_len, 9) ) 
+#    classical_catalog = np.zeros( (cat_len, 9) )
 
     classical_catalog = np.zeros((cat_len, 7+2*nbands))
     classical_catalog[:,0] = mean_x
@@ -530,7 +533,7 @@ def clusterize(seed_cat, cat_x, cat_y, cat_n, cat_r, cat_fs, nmgy):
 
     #saves catalog
     np.savetxt(base_path+'/pcat-lion-results/'+run_name+'/classical_catalog.txt', classical_catalog)
-    np.savetxt(base_path+'/figures/'+run_name+'/classical_catalog.txt', classical_catalog)
+    #np.savetxt(base_path+'/figures/'+run_name+'/classical_catalog.txt', classical_catalog)
     pix_offset = 0.5
 
     return classical_catalog
@@ -582,7 +585,7 @@ if datatype != 'mock':
     if not make_seed_bool and os.path.isfile(base_path+'/pcat-lion-results/'+run_name+'/seeds.txt'):
         dat = np.loadtxt(base_path+'/pcat-lion-results/'+run_name+'/seeds.txt')
     else:
-        dat = generate_seed_catalog(lion_kd, lion_all, lion_r_all, PCi)    
+        dat = generate_seed_catalog(lion_kd, lion_all, lion_r_all, PCi)
     cut = 0.1
 
     # plots histogram of confidence
@@ -645,118 +648,116 @@ if datatype != 'mock':
     plt.savefig(base_path+'/pcat-lion-results/'+run_name+'/hist_classical_cat.pdf')
 
 
-prec_portillo17, prec_lion, prec_condensed = [np.zeros(nbins) for x in xrange(3)]
-
-if datatype == 'mock':
-    goodmatch_lion = associate(lion_kd, lion_r_all, mock_kd, mock_rmag, dr, dmag)
-else:
-
-    #goodmatch_portillo17 = associate(PCkd, PCr_all, HTkd, HT814, dr, dmag)
-    #goodmatch_lion = associate(lion_kd, lion_r_all, HTkd, HT814, dr, dmag)
-    #goodmatch_condensed = associate(cond_kd, cond_r, HTkd, HT814, dr, dmag)
-    goodmatch_portillo17 = associate(PCkd, PCr_all, HTkd, HT606, dr, dmag)
-    goodmatch_lion = associate(lion_kd, lion_r_all, HTkd, HT606, dr, dmag)
-    goodmatch_condensed = associate(cond_kd, cond_r, HTkd, HT606, dr, dmag)
-
-for i in xrange(nbins):
-    rlo = minr + i * binw
-    rhi = rlo + binw
-
-    inbin = np.logical_and(lion_r_all >= rlo, lion_r_all < rhi)
-    prec_lion[i] = np.sum(np.logical_and(inbin, goodmatch_lion)) / float(np.sum(inbin))
-    #print rlo, rhi, np.sum(np.logical_and(inbin, goodmatch_lion))
-    if datatype != 'mock':
-        inbin = np.logical_and(PCr_all >= rlo, PCr_all < rhi)
-        inbin_cond = np.logical_and(cond_r >= rlo, cond_r < rhi)
-        prec_portillo17[i] = np.sum(np.logical_and(inbin, goodmatch_portillo17)) / float(np.sum(inbin))
-        prec_condensed[i] = np.sum(np.logical_and(inbin_cond, goodmatch_condensed)) / float(np.sum(inbin_cond))
-        print rlo, rhi, np.sum(np.logical_and(inbin_cond, goodmatch_condensed))
-print 'prec_lion', prec_lion
-print 'prec_condensed', prec_condensed
-
-chain_label = str(nb)+' Band Catalog Ensemble'
-plt.figure()
-if datatype != 'mock':
-    label = 'Portillo et al. (2017)'
-    plt.plot(minr + (np.arange(nbins)+0.5)*binw, 1-prec_portillo17, c='r', label=label, marker='x', markersize=10, mew=2)
-else:
-    label = 'Mock'
-plt.plot(minr + (np.arange(nbins)+0.5)*binw, 1-prec_lion, c='b', label=chain_label, marker='+', markersize=10, mew=2)
-plt.plot(minr + (np.arange(nbins)+0.5)*binw, 1-prec_condensed, c='y', label='Condensed Catalog', marker='+', markersize=10, mew=2)
-plt.xlabel('SDSS r magnitude')
-plt.ylabel('false discovery rate')
-plt.ylim((-0.05, 0.9))
-plt.xlim((15,24))
-plt.legend(prop={'size':12}, loc = 'best')
-#plt.savefig(result_path+'/'+run_name+'/fdr-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'.pdf')
-plt.savefig(result_path+'/'+run_name+'/fdr-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'-15.0-23.5.pdf')
-
-plt.close()
-
-fdr_lion = 1-prec_lion
-fdr_lion_condensed = 1-prec_condensed
-fdr_portillo17 = 1-prec_portillo17
-np.savetxt(result_path+'/'+run_name+'/fdr_'+str(dr)+'_'+str(dmag)+'_condensed.txt', fdr_lion_condensed)
-np.savetxt(result_path+'/'+run_name+'/fdr_'+str(dr)+'_'+str(dmag)+'.txt', fdr_lion)
-np.savetxt(result_path+'/'+run_name+'/fdr_portillo17.txt', fdr_portillo17)
-
-
-if datatype != 'mock':
-    #complete_lion = get_completeness(lion_x, lion_y, lion_r, lion_n, HTx_fits, HT814, HTkd)
-    #complete_portillo17 = get_completeness(PCx, PCy, PCr, PCn, HTx_fits, HT814, HTkd)
-    #complete_condensed = associate(HTkd, HT814, cond_kd, cond_r, dr, dmag)
-
-    complete_lion = get_completeness(lion_x, lion_y, lion_r, lion_n, HTx_fits, HT606, HTkd)
-    complete_portillo17 = get_completeness(PCx, PCy, PCr, PCn, HTx_fits, HT606, HTkd)
-    complete_condensed = associate(HTkd, HT606, cond_kd, cond_r, dr, dmag)
-    # complete_daophot = associate(HTkd, HT606, daophot_kd, daophot_r, dr, dmag)
-else:
-    print mock_rmag.shape
-    complete_lion = get_completeness(lion_x, lion_y, lion_r, lion_n, mock_x, mock_rmag, mock_kd)
-
-
-reclPC_portillo17 = np.zeros(nbins)
-reclPC_lion= np.zeros(nbins)
-recl_cond = np.zeros(nbins)
-recl_daophot = np.zeros(nbins)
-
-
-
-for i in xrange(nbins):
-    rlo = minr + i * binw
-    rhi = rlo + binw
-    if datatype != 'mock':
-        #inbin = np.logical_and(HT814 >= rlo, HT814 < rhi)
-        inbin = np.logical_and(HT606 >= rlo, HT606 < rhi)
-        reclPC_portillo17[i] = np.sum(complete_portillo17[inbin]) / float(np.sum(inbin))
-        recl_cond[i] = np.sum(complete_condensed[inbin])/float(np.sum(inbin))
-    else:
-        inbin = np.logical_and(mock_rmag >= rlo, mock_rmag< rhi)
-    reclPC_lion[i] = np.sum(complete_lion[inbin]) / float(np.sum(inbin))
-    #recl_cond[i] = np.sum(complete_condensed[inbin])/float(np.sum(inbin))
-    print rlo, rhi, np.sum(complete_lion[inbin])
-    #print np.sum(complete_condensed[inbin])
-
-
-plt.figure()
-plt.plot(minr + (np.arange(nbins)+0.5)*binw, reclPC_lion, c='b', label=chain_label, marker='+', markersize=10, mew=2)
-if datatype != 'mock':
-    plt.plot(minr + (np.arange(nbins)+0.5)*binw, reclPC_portillo17, c='r', label=label, marker='x', markersize=10, mew=2)
-    plt.plot(minr + (np.arange(nbins)+0.5)*binw, recl_cond, c='y', label='Condensed Catalog', marker='x', markersize=10, mew=2)
-plt.xlabel('HST F606W magnitude', fontsize='large')
-plt.ylabel('completeness', fontsize='large')
-plt.ylim((-0.1,1.1))
-plt.legend(loc='best', fontsize='large')
-#plt.savefig(result_path+'/'+run_name+'/completeness-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'.pdf')
-plt.savefig(result_path+'/'+run_name+'/completeness-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'-15.0-23.5.pdf')
-
-plt.close()
-np.savetxt(result_path+'/'+run_name+'/completeness_'+str(dr)+'_'+str(dmag)+'_condensed.txt', recl_cond)
-np.savetxt(result_path+'/'+run_name+'/completeness_'+str(dr)+'_'+str(dmag)+'.txt', reclPC_lion)
-np.savetxt(result_path+'/'+run_name+'/completeness_portillo.txt', reclPC_portillo17)
-print 'lion comments:', lion_comments
-with open(result_path+'/'+run_name+'/comments.txt', 'w') as p:
-    p.write(lion_comments)
-    p.close()
-
-
+# prec_portillo17, prec_lion, prec_condensed = [np.zeros(nbins) for x in xrange(3)]
+#
+# if datatype == 'mock':
+#     goodmatch_lion = associate(lion_kd, lion_r_all, mock_kd, mock_rmag, dr, dmag)
+# else:
+#
+#     #goodmatch_portillo17 = associate(PCkd, PCr_all, HTkd, HT814, dr, dmag)
+#     #goodmatch_lion = associate(lion_kd, lion_r_all, HTkd, HT814, dr, dmag)
+#     #goodmatch_condensed = associate(cond_kd, cond_r, HTkd, HT814, dr, dmag)
+#     goodmatch_portillo17 = associate(PCkd, PCr_all, HTkd, HT606, dr, dmag)
+#     goodmatch_lion = associate(lion_kd, lion_r_all, HTkd, HT606, dr, dmag)
+#     goodmatch_condensed = associate(cond_kd, cond_r, HTkd, HT606, dr, dmag)
+#
+# for i in xrange(nbins):
+#     rlo = minr + i * binw
+#     rhi = rlo + binw
+#
+#     inbin = np.logical_and(lion_r_all >= rlo, lion_r_all < rhi)
+#     prec_lion[i] = np.sum(np.logical_and(inbin, goodmatch_lion)) / float(np.sum(inbin))
+#     #print rlo, rhi, np.sum(np.logical_and(inbin, goodmatch_lion))
+#     if datatype != 'mock':
+#         inbin = np.logical_and(PCr_all >= rlo, PCr_all < rhi)
+#         inbin_cond = np.logical_and(cond_r >= rlo, cond_r < rhi)
+#         prec_portillo17[i] = np.sum(np.logical_and(inbin, goodmatch_portillo17)) / float(np.sum(inbin))
+#         prec_condensed[i] = np.sum(np.logical_and(inbin_cond, goodmatch_condensed)) / float(np.sum(inbin_cond))
+#         print rlo, rhi, np.sum(np.logical_and(inbin_cond, goodmatch_condensed))
+# print 'prec_lion', prec_lion
+# print 'prec_condensed', prec_condensed
+#
+# chain_label = str(nb)+' Band Catalog Ensemble'
+# plt.figure()
+# if datatype != 'mock':
+#     label = 'Portillo et al. (2017)'
+#     plt.plot(minr + (np.arange(nbins)+0.5)*binw, 1-prec_portillo17, c='r', label=label, marker='x', markersize=10, mew=2)
+# else:
+#     label = 'Mock'
+# plt.plot(minr + (np.arange(nbins)+0.5)*binw, 1-prec_lion, c='b', label=chain_label, marker='+', markersize=10, mew=2)
+# plt.plot(minr + (np.arange(nbins)+0.5)*binw, 1-prec_condensed, c='y', label='Condensed Catalog', marker='+', markersize=10, mew=2)
+# plt.xlabel('SDSS r magnitude')
+# plt.ylabel('false discovery rate')
+# plt.ylim((-0.05, 0.9))
+# plt.xlim((15,24))
+# plt.legend(prop={'size':12}, loc = 'best')
+# #plt.savefig(result_path+'/'+run_name+'/fdr-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'.pdf')
+# plt.savefig(result_path+'/'+run_name+'/fdr-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'-15.0-23.5.pdf')
+#
+# plt.close()
+#
+# fdr_lion = 1-prec_lion
+# fdr_lion_condensed = 1-prec_condensed
+# fdr_portillo17 = 1-prec_portillo17
+# np.savetxt(result_path+'/'+run_name+'/fdr_'+str(dr)+'_'+str(dmag)+'_condensed.txt', fdr_lion_condensed)
+# np.savetxt(result_path+'/'+run_name+'/fdr_'+str(dr)+'_'+str(dmag)+'.txt', fdr_lion)
+# np.savetxt(result_path+'/'+run_name+'/fdr_portillo17.txt', fdr_portillo17)
+#
+#
+# if datatype != 'mock':
+#     #complete_lion = get_completeness(lion_x, lion_y, lion_r, lion_n, HTx_fits, HT814, HTkd)
+#     #complete_portillo17 = get_completeness(PCx, PCy, PCr, PCn, HTx_fits, HT814, HTkd)
+#     #complete_condensed = associate(HTkd, HT814, cond_kd, cond_r, dr, dmag)
+#
+#     complete_lion = get_completeness(lion_x, lion_y, lion_r, lion_n, HTx_fits, HT606, HTkd)
+#     complete_portillo17 = get_completeness(PCx, PCy, PCr, PCn, HTx_fits, HT606, HTkd)
+#     complete_condensed = associate(HTkd, HT606, cond_kd, cond_r, dr, dmag)
+#     # complete_daophot = associate(HTkd, HT606, daophot_kd, daophot_r, dr, dmag)
+# else:
+#     print mock_rmag.shape
+#     complete_lion = get_completeness(lion_x, lion_y, lion_r, lion_n, mock_x, mock_rmag, mock_kd)
+#
+#
+# reclPC_portillo17 = np.zeros(nbins)
+# reclPC_lion= np.zeros(nbins)
+# recl_cond = np.zeros(nbins)
+# recl_daophot = np.zeros(nbins)
+#
+#
+#
+# for i in xrange(nbins):
+#     rlo = minr + i * binw
+#     rhi = rlo + binw
+#     if datatype != 'mock':
+#         #inbin = np.logical_and(HT814 >= rlo, HT814 < rhi)
+#         inbin = np.logical_and(HT606 >= rlo, HT606 < rhi)
+#         reclPC_portillo17[i] = np.sum(complete_portillo17[inbin]) / float(np.sum(inbin))
+#         recl_cond[i] = np.sum(complete_condensed[inbin])/float(np.sum(inbin))
+#     else:
+#         inbin = np.logical_and(mock_rmag >= rlo, mock_rmag< rhi)
+#     reclPC_lion[i] = np.sum(complete_lion[inbin]) / float(np.sum(inbin))
+#     #recl_cond[i] = np.sum(complete_condensed[inbin])/float(np.sum(inbin))
+#     print rlo, rhi, np.sum(complete_lion[inbin])
+#     #print np.sum(complete_condensed[inbin])
+#
+#
+# plt.figure()
+# plt.plot(minr + (np.arange(nbins)+0.5)*binw, reclPC_lion, c='b', label=chain_label, marker='+', markersize=10, mew=2)
+# if datatype != 'mock':
+#     plt.plot(minr + (np.arange(nbins)+0.5)*binw, reclPC_portillo17, c='r', label=label, marker='x', markersize=10, mew=2)
+#     plt.plot(minr + (np.arange(nbins)+0.5)*binw, recl_cond, c='y', label='Condensed Catalog', marker='x', markersize=10, mew=2)
+# plt.xlabel('HST F606W magnitude', fontsize='large')
+# plt.ylabel('completeness', fontsize='large')
+# plt.ylim((-0.1,1.1))
+# plt.legend(loc='best', fontsize='large')
+# #plt.savefig(result_path+'/'+run_name+'/completeness-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'.pdf')
+# plt.savefig(result_path+'/'+run_name+'/completeness-lion'+str(run_name)+'_'+str(dr)+'_'+str(dmag)+'-15.0-23.5.pdf')
+#
+# plt.close()
+# np.savetxt(result_path+'/'+run_name+'/completeness_'+str(dr)+'_'+str(dmag)+'_condensed.txt', recl_cond)
+# np.savetxt(result_path+'/'+run_name+'/completeness_'+str(dr)+'_'+str(dmag)+'.txt', reclPC_lion)
+# np.savetxt(result_path+'/'+run_name+'/completeness_portillo.txt', reclPC_portillo17)
+# print 'lion comments:', lion_comments
+# with open(result_path+'/'+run_name+'/comments.txt', 'w') as p:
+#     p.write(lion_comments)
+#     p.close()

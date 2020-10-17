@@ -11,22 +11,30 @@ import os
 
 np.seterr(divide='ignore', invalid='ignore')
 
-if sys.platform=='darwin':
-    result_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master/pcat-lion-results/'
-    data_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master/Data'
-elif sys.platform=='linux2':
-    result_path = '/n/home07/rfederstaehle/figures/'
-    data_path = '/n/fink1/rfeder/mpcat/multiband_pcat/Data'
-    #chain_path = '/n/fink1/rfeder/mpcat/multiband_pcat/pcat-lion-results/'
-    chain_path = '/n/home07/rfederstaehle/pcat-lion-results/'
-else:
-    base_path = raw_input('Operating system not detected, please enter base_path directory (eg. /Users/.../pcat-lion-master):')
-    if not os.path.isdir(base_path):
-        raise OSError('Directory chosen does not exist. Please try again.')
+# if sys.platform=='darwin':
+#     result_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master/pcat-lion-results/'
+#     data_path = '/Users/richardfeder/Documents/multiband_pcat/pcat-lion-master/Data'
+# elif sys.platform=='linux2':
+#     result_path = '/n/home07/rfederstaehle/figures/'
+#     data_path = '/n/fink1/rfeder/mpcat/multiband_pcat/Data'
+#     #chain_path = '/n/fink1/rfeder/mpcat/multiband_pcat/pcat-lion-results/'
+#     chain_path = '/n/home07/rfederstaehle/pcat-lion-results/'
+# else:
+#     base_path = raw_input('Operating system not detected, please enter base_path directory (eg. /Users/.../pcat-lion-master):')
+#     if not os.path.isdir(base_path):
+#         raise OSError('Directory chosen does not exist. Please try again.')
 
-run = '008151'
-camcol = '4'
-field = '0063'
+chain_path = '/accounts/grad/runjing_liu/astronomy/pcat_experimentation/pcat-lion-results/'
+result_path = '/accounts/grad/runjing_liu/astronomy/pcat_experimentation/pcat-lion-results/'
+data_path = '/accounts/grad/runjing_liu/astronomy/pcat_experimentation/Data/'
+
+# run = '008151'
+# camcol = '4'
+# field = '0063'
+run = '008583'
+camcol = '2'
+field = '0136'
+
 mag_bins = np.linspace(15, 23, 15)
 
 run_cam_field = run+'-'+camcol+'-'+field
@@ -38,7 +46,7 @@ result_dir_name = str(sys.argv[2])
 datatype = str(sys.argv[3])
 for b in xrange(4,len_sys):
     bands.append(sys.argv[b])
-    
+
 
 ref_cat_path = data_path+'/'+dataname+'/truth/'+dataname+'-tru.txt'
 result_path += result_dir_name
@@ -81,7 +89,7 @@ def result_plots(result_path, ref_cat_path, \
         label = 'Mock Truth'
     else:
         label = datatype
-    
+
 
     if chain_datatype.lower()=='npz':
         chain = np.load(chain_path+'/chain.npz')
@@ -122,7 +130,7 @@ def result_plots(result_path, ref_cat_path, \
         ref_color = ref_mags[0]-ref_mags[b+1]
         ref_colors.append(ref_color)
 
-        
+
 
     # ------------------- ABSOLUTE ASTROMETRIC OFFSET -------------
 
@@ -257,21 +265,21 @@ def result_plots(result_path, ref_cat_path, \
 
             colors = colorsrcs[b][samp]
             brightest_idx = np.argpartition(fsrcs[0,samp][mask], n_bright)[-n_bright:]
-            
+
             bright_h = np.histogram(colors[brightest_idx], bins=color_post_bins)
             hist = np.histogram(colors, bins=color_post_bins)
             post_hist.append(hist[0]+0.01)
             bright_hist.append(bright_h[0]+0.01)
 
         medians = np.median(np.array(post_hist), axis=0)
-        medians /= (np.sum(medians)*(color_post_bins[1]-color_post_bins[0]))  
+        medians /= (np.sum(medians)*(color_post_bins[1]-color_post_bins[0]))
         medians_bright = np.median(np.array(bright_hist), axis=0)
-        medians_bright /= (np.sum(medians_bright)*(color_post_bins[1]-color_post_bins[0]))  
+        medians_bright /= (np.sum(medians_bright)*(color_post_bins[1]-color_post_bins[0]))
         bincentres = [(color_post_bins[i]+color_post_bins[i+1])/2. for i in range(len(color_post_bins)-1)]
 
         cp_mu = cprior_vals[0,b]
         cp_sig = cprior_vals[1,b]
-        cp_vals = gaussian(np.array(bincentres),cp_mu, cp_sig) 
+        cp_vals = gaussian(np.array(bincentres),cp_mu, cp_sig)
         #print 'cp_sig:', cp_sig
         #print 'cp_mu:', cp_mu
         #print 'cp_vals:', cp_vals
@@ -292,7 +300,7 @@ def result_plots(result_path, ref_cat_path, \
         plt.close()
 
 
-# can now create a function that makes multiband sample frames but retroactively, based off of the chain samples and standard model evaluation. 
+# can now create a function that makes multiband sample frames but retroactively, based off of the chain samples and standard model evaluation.
 
 def multiband_retro_frames(result_path, ref_cat_path, data_path,\
                         hubble_cat_path=None, \
@@ -308,7 +316,7 @@ def multiband_retro_frames(result_path, ref_cat_path, data_path,\
                         imdim=100,  \
                         bands=['r']):
 
-    
+
     if datatype=='mock':
         labldata = 'Mock Truth'
     else:
@@ -374,8 +382,8 @@ def multiband_retro_frames(result_path, ref_cat_path, data_path,\
     #    frame_basic_path = data_path+'/'+dataname+'/frames/frame--'+run_cam_field+'.fits'
     #    gains = dict({"r":4.61999, "i":4.38999, "g":4.2, "z":5.67999})
     #    biases = dict({"r":1044., "i":1177., "g":1113., "z":1060.})
-        
-    
+
+
     for band in bands:
         pix_path = data_path+'/'+dataname+'/pixs/'+dataname+'-pix'+band+'.txt'
         g = open(pix_path)
@@ -397,7 +405,7 @@ def multiband_retro_frames(result_path, ref_cat_path, data_path,\
             #g = open(pix_path)
             #a = g.readline().split()
             #np.float32(g.readline().split())
-            
+
             #frame_path = frame_basic_path.replace('--', '-'+band+'-')
     #mean_dpos = dict({'r-i':[-1.,3.], 'r-g':[3.,10.], 'r-z':[1.,7.], 'r-r':[0.,0.]})
     mean_dpos = dict({'r-i':[-1.,3.], 'r-g':[-2.,12.]})
@@ -452,7 +460,7 @@ def multiband_retro_frames(result_path, ref_cat_path, data_path,\
             resid = data-model
             variance = data / gains[bands[b]]
             weight = 1. / variance
-            
+
             np.savetxt(result_path+'/residuals/resid_'+str(num)+str(bands[b])+'.txt', resid*np.sqrt(weight))
            # plt.figure()
            # plt.imshow(resids[0,b,:,:]*np.sqrt(weight), origin='lower', interpolation='none', cmap='Greys', vmin=-30, vmax=30)
@@ -527,14 +535,13 @@ def multiband_retro_frames(result_path, ref_cat_path, data_path,\
 
 
 
-hubble_cat_path = '/n/fink1/rfeder/mpcat/multiband_pcat/Data/idR-002583-2-0136/hubble_catalog_2583-2-0136_astrans.txt'
-hubble_cat_path = '/n/fink1/rfeder/mpcat/multiband_pcat/Data/idR-002583-2-0136/hubble_pixel_coords-2583-2-0136.fits'
-result_plots(result_path, ref_cat_path, datatype=datatype, burn_in_frac=0.5, bands=bands, plttype='png', hubble_cat_path=hubble_cat_path)
-multiband_retro_frames(result_path, ref_cat_path, data_path, bands=bands, datatype=datatype, plttype='png', imdim=500, hubble_cat_path=hubble_cat_path)
+# hubble_cat_path = '/n/fink1/rfeder/mpcat/multiband_pcat/Data/idR-002583-2-0136/hubble_catalog_2583-2-0136_astrans.txt'
+# hubble_cat_path = '/n/fink1/rfeder/mpcat/multiband_pcat/Data/idR-002583-2-0136/hubble_pixel_coords-2583-2-0136.fits'
+# result_plots(result_path, ref_cat_path, datatype=datatype, burn_in_frac=0.5, bands=bands, plttype='png', hubble_cat_path=hubble_cat_path)
+# multiband_retro_frames(result_path, ref_cat_path, data_path, bands=bands, datatype=datatype, plttype='png', imdim=500, hubble_cat_path=hubble_cat_path)
 
 m2plots_command = 'python m2plots.py '+dataname+' '+result_dir_name+' 1'
 
 # UNCOMMENT TO RUN CONDENSED CATALOG CODE/COMPLETENESS/FDR
-#print m2plots_command
-#os.system(m2plots_command)
-
+print m2plots_command
+os.system(m2plots_command)
